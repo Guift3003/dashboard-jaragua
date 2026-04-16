@@ -136,12 +136,12 @@ r1, r2 = st.columns(2)
 
 with r1:
     rank_area = df_geral.groupby('Nome_Limpo')['area_pol'].sum().reset_index().sort_values('area_pol', ascending=True)
-    f1 = px.bar(rank_area, x='area_pol', y='Municipio', orientation='h', title="Ranking: Área de Risco (km²)", color_discrete_sequence=['#3186cc'])
+    f1 = px.bar(rank_area, x='area_pol', y='Nome_Limpo', orientation='h', title="Ranking: Área de Risco (km²)", color_discrete_sequence=['#3186cc'])
     st.plotly_chart(f1, use_container_width=True)
 
 with r2:
     rank_p = df_urb_total.groupby('Nome_Limpo')['Pop_Exposta'].sum().reset_index().sort_values('Pop_Exposta', ascending=True)
-    f2 = px.bar(rank_p, x='Pop_Exposta', y='Municipio', orientation='h', title="Ranking: Pessoas em Risco", color_discrete_sequence=['#e74c3c'])
+    f2 = px.bar(rank_p, x='Pop_Exposta', y='Nome_Limpo', orientation='h', title="Ranking: Pessoas em Risco", color_discrete_sequence=['#e74c3c'])
     st.plotly_chart(f2, use_container_width=True)
 
 # --- SEÇÃO 3: CORRELAÇÃO SOCIOECONÔMICA ---
@@ -150,7 +150,7 @@ st.subheader("📈 Relação PIB per Capita vs. Risco Social")
 
 dados_scatter = df_urb_total.groupby('Nome_Limpo').agg({'Pop_Exposta': 'sum', 'PIB_Capita': 'mean', 'area_pol': 'sum'}).reset_index()
 
-f3 = px.scatter(dados_scatter, x='PIB_Capita', y='Pop_Exposta', text='Municipio', size='area_pol',
+f3 = px.scatter(dados_scatter, x='PIB_Capita', y='Pop_Exposta', text='Nome_Limpo', size='area_pol',
                  color='PIB_Capita', title="Correlação Riqueza vs. Vulnerabilidade",
                  labels={'PIB_Capita': 'PIB per capita (R$)', 'Pop_Exposta': 'População em Risco'})
 f3.update_traces(textposition='top center')
