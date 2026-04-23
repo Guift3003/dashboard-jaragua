@@ -26,8 +26,15 @@ def load_geojson():
     with open('municipios_interesse.geojson', 'r', encoding='utf-8') as f:
         return json.load(f)
 
+@st.cache_data
+def load_risco_geojson():
+    # Carrega a camada de declividade extraída do QGIS
+    with open('camada_declividade.geojson', 'r', encoding='utf-8') as f:
+        return json.load(f)
+
 df = load_data()
 geojson_data = load_geojson()
+geojson_risco = load_risco_geojson()
 
 # --- DADOS SOCIOECONÔMICOS ---
 densidades_hab_km2 = {
@@ -62,15 +69,28 @@ col_mapa, col_kpis = st.columns([1, 1.2])
 with col_mapa:
     m = folium.Map(location=[-23.45, -46.76], zoom_start=10, tiles="cartodbpositron")
     
-    # Adicionando o GeoJson com as funções de Hover e Tooltip restauradas
+    # 1. Camada Visual de Declividade (Mancha de Risco)
+    folium.GeoJson(
+        geojson_risco,
+        name="Zonas de Alta Declividade (>20%)",
+        style_function=lambda x: {
+            'fillColor': '#ff4b4b', 
+            'color': 'none', 
+            'fillOpacity': 0.5
+        },
+        interactive=False # Não rouba o clique do município
+    ).add_to(m)
+
+    # 2. Camada Interativa de Municípios
     folium.GeoJson(
         geojson_data,
         style_function=lambda x: {'fillColor': '#3186cc', 'color': 'black', 'weight': 1, 'fillOpacity': 0.2},
-        highlight_function=lambda x: {'weight': 3, 'fillOpacity': 0.6}, # Deixa o município mais escuro ao passar o mouse
-        tooltip=folium.GeoJsonTooltip(fields=['NM_MUN'], aliases=['Município:']) # Faz o nome aparecer
+        highlight_function=lambda x: {'weight': 3, 'fillOpacity': 0.6},
+        tooltip=folium.GeoJsonTooltip(fields=['NM_MUN'], aliases=['Município:'])
     ).add_to(m)
     
     mapa_interativo = st_folium(m, width=500, height=400)
+
 # Lógica de Filtro
 municipio_selecionado = mapa_interativo.get('last_active_drawing')['properties']['NM_MUN'] if mapa_interativo.get('last_active_drawing') else None
 
@@ -116,12 +136,11 @@ with col_kpis:
 st.markdown("---")
 
 # --- DETALHAMENTO DO MUNICÍPIO (Gráfico de Rosca) ---
-# Aqui está o bloco que tinha sumido! Ele só aparece quando você clica em uma cidade.
 if municipio_selecionado:
     st.subheader(f"🔍 Detalhamento Local: {municipio_selecionado}")
     d1, d2 = st.columns([1.2, 1])
     with d1:
-        fig_pie = px.pie(df_f, values='area_pol', names='Classe', hole=0.4, title="Distribuição de Uso do Solo")
+        fig_pie = px.pie(df_f, values='area_pol', names='Classe', hole=0.4, title="Uso do Solo nas Áreas de Risco")
         st.plotly_chart(fig_pie, use_container_width=True)
     with d2:
         st.write("Fragmentos por Classe de Cobertura")
