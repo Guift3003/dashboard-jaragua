@@ -29,7 +29,7 @@ def load_geojson():
 @st.cache_data
 def load_risco_geojson():
     # Carrega a camada de declividade extraída do QGIS
-    with open('camada_declividade.geojson', 'r', encoding='utf-8') as f:
+    with open('declividade.geojson', 'r', encoding='utf-8') as f:
         return json.load(f)
 
 df = load_data()
